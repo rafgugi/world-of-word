@@ -1,0 +1,19 @@
+{
+  "name": "world-of-word",
+  "version": "0.0.012",
+  "authors": "",
+  "main": "gulpfile.js",
+  "license": "MIT",
+  "ignore": [
+    "**/.*",
+    "node_modules",
+    "bower_components",
+    "test",
+    "tests"
+  ],
+  "dependencies": {
+    "foundation-sites": "~6.2.3",
+    "motion-ui": "~1.2.2"
+  },
+  "private": true
+}
