@@ -6,12 +6,14 @@ import browser    from 'browser-sync';
 import gulp       from 'gulp';
 import panini     from 'panini';
 import rimraf     from 'rimraf';
-import sherpa     from 'style-sherpa';
 import yaml       from 'js-yaml';
 import fs         from 'fs';
 import coffee     from 'gulp-coffee';
 import browserify from 'gulp-browserify';
 import concat     from 'gulp-concat';
+import rename     from 'gulp-rename';
+import gls        from 'gulp-live-server';
+import recursifs  from 'fs-readdir-recursive';
 
 // Load all Gulp plugins into one variable
 const $ = plugins();
@@ -29,23 +31,23 @@ function loadConfig() {
 
 // Build the "dist" folder by running all of the below tasks
 gulp.task('build',
- gulp.series(clean, gulp.parallel(pages, sass, javascript, react, images, copy), styleGuide));
+ gulp.series(clean, gulp.parallel(pages, sass, javascript, compileReact, compileServer, images, copy)));
 
 // Build the site, run the server, and watch for file changes
 gulp.task('default',
-  gulp.series('build', server, watch));
+  gulp.series('build', gulp.parallel(client, server), watch));
 
 // Delete the "dist" folder
 // This happens every time a build starts
 function clean(done) {
-  rimraf(PATHS.dist, done);
+  rimraf(PATHS.dist.root, done);
 }
 
 // Copy files out of the assets folder
 // This task skips over the "img", "js", and "scss" folders, which are parsed separately
 function copy() {
   return gulp.src(PATHS.assets)
-    .pipe(gulp.dest(PATHS.dist + '/assets'));
+    .pipe(gulp.dest(PATHS.dist.client + '/assets'));
 }
 
 // Copy page templates into finished HTML files
@@ -54,24 +56,14 @@ function pages() {
     .pipe(panini({
       root: 'src/pages/',
       layouts: 'src/layouts/',
-      data: 'src/data/',
-      helpers: 'src/helpers/'
     }))
-    .pipe(gulp.dest(PATHS.dist));
+    .pipe(gulp.dest(PATHS.dist.client));
 }
 
 // Load updated HTML templates into Panini
 function resetPages(done) {
   panini.refresh();
   done();
-}
-
-// Generate a style guide from the Markdown content and HTML template in styleguide/
-function styleGuide(done) {
-  sherpa('src/styleguide/index.md', {
-    output: PATHS.dist + '/styleguide.html',
-    template: 'src/styleguide/template.html'
-  }, done);
 }
 
 // Compile Sass into CSS
@@ -90,7 +82,7 @@ function sass() {
     //.pipe($.if(PRODUCTION, $.uncss(UNCSS_OPTIONS)))
     .pipe($.if(PRODUCTION, $.cssnano()))
     .pipe($.if(!PRODUCTION, $.sourcemaps.write()))
-    .pipe(gulp.dest(PATHS.dist + '/assets/css'))
+    .pipe(gulp.dest(PATHS.dist.client + '/assets/css'))
     .pipe(browser.reload({ stream: true }));
 }
 
@@ -105,10 +97,11 @@ function javascript() {
       .on('error', e => { console.log(e); })
     ))
     .pipe($.if(!PRODUCTION, $.sourcemaps.write()))
-    .pipe(gulp.dest(PATHS.dist + '/assets/js'));
+    .pipe(gulp.dest(PATHS.dist.client + '/assets/js'));
 }
 
-function react() {
+// Compile react in coffeescript into javascript
+function compileReact() {
   return gulp.src('./src/react/index.coffee', { read: false })
     .pipe(browserify({ transform: ['coffeeify'], extensions: ['.coffee'] }))
     .pipe(concat('app2.js'))
@@ -116,7 +109,15 @@ function react() {
       .on('error', e => { console.log(e); })
     ))
     .pipe($.if(!PRODUCTION, $.sourcemaps.write()))
-    .pipe(gulp.dest(PATHS.dist + '/assets/js'));
+    .pipe(gulp.dest(PATHS.dist.client + '/assets/js'));
+}
+
+// Compile express socket server in coffeescript into javascript
+function compileServer() {
+  return gulp.src(PATHS.server)
+    .pipe(coffee({bare: true}))
+    .pipe(rename({ extname: '.js' }))
+    .pipe(gulp.dest(PATHS.dist.server));
 }
 
 // Copy images to the "dist" folder
@@ -126,14 +127,21 @@ function images() {
     .pipe($.if(PRODUCTION, $.imagemin({
       progressive: true
     })))
-    .pipe(gulp.dest(PATHS.dist + '/assets/img'));
+    .pipe(gulp.dest(PATHS.dist.client + '/assets/img'));
 }
 
-// Start a server with BrowserSync to preview the site in
-function server(done) {
+// Start a frontend server with BrowserSync to preview the site in
+function client(done) {
   browser.init({
-    server: PATHS.dist, port: PORT
+    server: PATHS.dist.client, port: PORT.client
   });
+  done();
+}
+
+// Start a game server with express and socket.io
+function server(done) {
+  var game = gls.new(PATHS.dist.server + '/game.js')
+  game.start();
   done();
 }
 
@@ -143,7 +151,7 @@ function reload(done) {
   done();
 }
 
-// Watch for changes to static assets, pages, Sass, and JavaScript
+// Watch for changes to static assets, pages, Sass, JavaScript, and CoffeeScript
 function watch() {
   gulp.watch(PATHS.assets, copy);
   gulp.watch('src/pages/**/*.html').on('all', gulp.series(pages, browser.reload));
@@ -151,6 +159,6 @@ function watch() {
   gulp.watch('src/assets/scss/**/*.scss').on('all', gulp.series(sass, browser.reload));
   gulp.watch('src/assets/js/**/*.js').on('all', gulp.series(javascript, browser.reload));
   gulp.watch('src/assets/img/**/*').on('all', gulp.series(images, browser.reload));
-  gulp.watch('src/styleguide/**').on('all', gulp.series(styleGuide, browser.reload));
-  gulp.watch('src/react/**/*.coffee').on('all', gulp.series(react, browser.reload));
+  gulp.watch('src/react/**/*.coffee').on('all', gulp.series(compileReact, browser.reload));
+  gulp.watch('src/server/**/*.coffee').on('all', gulp.series(compileServer, server));
 }
