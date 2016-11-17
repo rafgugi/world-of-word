@@ -2,6 +2,17 @@
 
 Multiplayer word search game.
 
+### Introduction
+
+Game ini bertujuan mencari kata dalam kumpulan huruf dengan kategori tertentu
+
+A | P | P | L | E
+--- | --- | --- | --- | ---
+R | **I** | X | D | E
+P | **N** | C | L | L
+L | **E** | X | K | Q
+E | N | C | J | B
+
 ### How do I get set up?
 
 * Pull repository
