@@ -8,6 +8,10 @@ GameComponent = React.createClass
 
   getInitialState: -> {}
 
+  componentDidMount: ->
+    socket = io('http://localhost:3000')
+    console.log socket
+
   render: ->
     dom 'div', className: 'row',
       dom 'div', className: 'large-8 medium-8 columns',
