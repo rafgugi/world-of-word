@@ -1,12 +1,17 @@
-app = require('express')()
+express = require('express')
+app = express()
 http = require('http').Server(app)
 io = require('socket.io')(http);
+path = require('path')
+{ COMPATIBILITY, PORT, UNCSS_OPTIONS, PATHS } = require('./config')
 
 app.get '/', (req, res) ->
-  res.send('<h1>Hello world</h1>')
+  res.sendFile path.join __dirname, '../client/index.html'
+
+app.use express.static PATHS.dist.client
 
 io.on 'connection', (socket) ->
   console.log('a user connected');
 
-http.listen 3000, ->
-  console.log 'listening on *:3000'
+http.listen PORT, ->
+  console.log "listening on #{PORT}"
