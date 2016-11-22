@@ -1,10 +1,10 @@
 fs = require 'fs'
 
-dictionary = {}
+dictionary = []
 files = fs.readdirSync 'dictionary'
-files.forEach (file) ->
-  dictionary[file] = undefined
-  data = fs.readFileSync "dictionary/#{file}", "ascii"
-  dictionary[file] = data.split("\n").filter (x) -> x isnt ""
+files.forEach (category) ->
+  data = fs.readFileSync "dictionary/#{category}", "ascii"
+  words = data.toUpperCase().split("\n").filter (x) -> x isnt ""
+  dictionary.push { category, words }
 
 module.exports = dictionary
