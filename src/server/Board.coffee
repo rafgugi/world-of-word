@@ -2,7 +2,7 @@ _ = require 'lodash'
 dictionary = require './dictionary'
 
 class Board
-  constructor: (@_ordo = 15, @_timeLimit = 2, @_maxloop = 5000) ->
+  constructor: (@_ordo = 15, @_gridLoop = 64, @_wordLoop = 4) ->
     @_availableWords = []
     @_currentWords = []
     @_category = null
@@ -29,17 +29,16 @@ class Board
     @_category = category
     @_availableWords = words
 
-    timeLimit = @_timeLimit * 1000 + new Date().getTime()
-    tes = true
-    while tes
-    # while new Date().getTime() < timeLimit
+    maxScore = 0
+    for i in [1..@_gridLoop]
       currentWords = []
       grid = new Grid(@_ordo)
 
       shuffledWords = _.shuffle @getAvailableWords()
+      currentScore = 0
       for word in shuffledWords
         rp = score: -1 # random position
-        for i in [0..1] # [0..@_timeLimit]
+        for i in [0..@_wordLoop]
           col = _.random(0, @_ordo - 1)
           row = _.random(0, @_ordo - 1)
           vertical = if _.random(0, 1) is 1 then true else false
@@ -47,18 +46,20 @@ class Board
           if score > rp.score
             rp = { col, row, vertical, score }
         if rp.score >= 0
+          currentScore += rp.score
           grid.fit rp.col, rp.row, rp.vertical, word
+      if currentScore > maxScore
+        maxScore = currentScore
+        @_grid = grid
 
-      tes = false
-    console.log grid.toString()
+    grid.fillEmptiness()
+    @_grid = grid
     @_ready = true
 
-class Coordinate
-  constructor: (@x, @y, @vertical, @length) ->
-
+# grid is a square matrix contains letter
 class Grid
-  constructor: (@_ordo = 15, @_emptyChar = '-') ->
-    @_grid = null
+  constructor: (@_ordo = 15, @_emptyChar = ' ') ->
+    @_grid = []
     @_currentWords = []
     @emptyGrid()
 
@@ -66,24 +67,36 @@ class Grid
 
   getGrid: -> @_grid
 
-  getCell: (col, row) -> @_grid[col][row]
+  cell: (col, row, letter) ->
+    if letter?
+      @_grid[col][row] = letter
+    else
+      @_grid[col][row]
 
   # fill the grid with predefined empty char
   emptyGrid: ->
-    @_grid = []
     for i in [0..@_ordo]
       row = []
       for j in [0..@_ordo]
         row.push @_emptyChar
       @_grid.push row
+    true
+
+  # fill the empty with random letter
+  fillEmptiness: ->
+    for i in [0..@_ordo]
+      for j in [0..@_ordo]
+        if @cell(i, j) is @_emptyChar
+          @cell(i, j, 'X')
+    true
 
   checkFitScore: (col, row, vertical, word) ->
     score = 0
     try
       for letter, i in word
-        c = @getCell(col, row)
+        c = @cell(col, row)
         if c is letter
-          score += 1
+          score++
         else if c isnt @_emptyChar
           return -1
         if vertical then col++
@@ -94,12 +107,13 @@ class Grid
 
   fit: (col, row, vertical, word) ->
     for letter in word
-      @_grid[col][row] = letter
+      @cell(col, row, letter)
       if vertical then col++
       else row++
+    true
 
   toString: ->
-    ans = "\n"
+    ans = ""
     ans += r.join(' ') + "\n" for r in @_grid
     ans
 
