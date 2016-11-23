@@ -1,18 +1,18 @@
 'use strict';
 
-import plugins    from 'gulp-load-plugins';
-import yargs      from 'yargs';
-import gulp       from 'gulp';
-import panini     from 'panini';
-import rimraf     from 'rimraf';
-import yaml       from 'js-yaml';
-import fs         from 'fs';
-import coffee     from 'gulp-coffee';
-import browser    from 'browser-sync';
-import browserify from 'gulp-browserify';
-import concat     from 'gulp-concat';
-import rename     from 'gulp-rename';
-import gls        from 'gulp-live-server';
+var plugins    = require('gulp-load-plugins');
+var yargs      = require('yargs');
+var gulp       = require('gulp');
+var panini     = require('panini');
+var rimraf     = require('rimraf');
+var yaml       = require('js-yaml');
+var fs         = require('fs');
+var coffee     = require('gulp-coffee');
+var browser    = require('browser-sync');
+var browserify = require('gulp-browserify');
+var concat     = require('gulp-concat');
+var rename     = require('gulp-rename');
+var gls        = require('gulp-live-server');
 
 // Load all Gulp plugins into one variable
 const $ = plugins();
@@ -21,7 +21,11 @@ const $ = plugins();
 const PRODUCTION = !!(yargs.argv.production);
 
 // Load settings from settings.yml
-const { COMPATIBILITY, PORT, UNCSS_OPTIONS, PATHS } = loadConfig();
+var ref = loadConfig();
+const COMPATIBILITY = ref.COMPATIBILITY;
+const PORT = ref.PORT;
+const UNCSS_OPTIONS = ref.UNCSS_OPTIONS;
+const PATHS = ref.PATHS;
 
 // intialize game server
 var game = gls.new(PATHS.dist.server + '/game.js')
@@ -80,8 +84,6 @@ function sass() {
     .pipe($.autoprefixer({
       browsers: COMPATIBILITY
     }))
-    // Comment in the pipe below to run UnCSS in production
-    //.pipe($.if(PRODUCTION, $.uncss(UNCSS_OPTIONS)))
     .pipe($.if(PRODUCTION, $.cssnano()))
     .pipe($.if(!PRODUCTION, $.sourcemaps.write()))
     .pipe(gulp.dest(PATHS.dist.client + '/assets/css'))
@@ -96,7 +98,7 @@ function javascript() {
     // .pipe($.babel()) if you activate this, socket.io won't work
     .pipe($.concat('app.js'))
     .pipe($.if(PRODUCTION, $.uglify()
-      .on('error', e => { console.log(e); })
+      .on('error', function(e) { console.log(e); })
     ))
     .pipe($.if(!PRODUCTION, $.sourcemaps.write()))
     .pipe(gulp.dest(PATHS.dist.client + '/assets/js'));
@@ -108,7 +110,7 @@ function compileReact() {
     .pipe(browserify({ transform: ['coffeeify'], extensions: ['.coffee'] }))
     .pipe(concat('app2.js'))
     .pipe($.if(PRODUCTION, $.uglify()
-      .on('error', e => { console.log(e); })
+      .on('error', function(e) { console.log(e); })
     ))
     .pipe($.if(!PRODUCTION, $.sourcemaps.write()))
     .pipe(gulp.dest(PATHS.dist.client + '/assets/js'));
