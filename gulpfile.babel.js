@@ -8,6 +8,7 @@ import rimraf     from 'rimraf';
 import yaml       from 'js-yaml';
 import fs         from 'fs';
 import coffee     from 'gulp-coffee';
+import browser    from 'browser-sync';
 import browserify from 'gulp-browserify';
 import concat     from 'gulp-concat';
 import rename     from 'gulp-rename';
@@ -36,7 +37,7 @@ gulp.task('build',
 
 // Build the site, run the server, and watch for file changes
 gulp.task('default',
-  gulp.series('build', server, watch));
+  gulp.series('build', gulp.parallel(server, browserInit), watch));
 
 // Delete the "dist" folder
 // This happens every time a build starts
@@ -83,8 +84,8 @@ function sass() {
     //.pipe($.if(PRODUCTION, $.uncss(UNCSS_OPTIONS)))
     .pipe($.if(PRODUCTION, $.cssnano()))
     .pipe($.if(!PRODUCTION, $.sourcemaps.write()))
-    .pipe(gulp.dest(PATHS.dist.client + '/assets/css'));
-    // .pipe(browser.reload({ stream: true }));
+    .pipe(gulp.dest(PATHS.dist.client + '/assets/css'))
+    .pipe(browser.reload({ stream: true }));
 }
 
 // Combine JavaScript into one file
@@ -138,14 +139,26 @@ function server(done) {
   done();
 }
 
+// and start browser sync
+function browserInit(done) {
+  browser.init({ proxy: "http://localhost:" + PORT });
+  done();
+}
+
+// reload the browser
+function reload(done) {
+  browser.reload();
+  done();
+}
+
 // Watch for changes to static assets, pages, Sass, JavaScript, and CoffeeScript
 function watch() {
   gulp.watch(PATHS.assets, copy);
-  gulp.watch('src/pages/**/*.html').on('all', gulp.series(pages));
-  gulp.watch('src/layouts/**/*.html').on('all', gulp.series(resetPages, pages));
-  gulp.watch('src/assets/scss/**/*.scss').on('all', gulp.series(sass));
-  gulp.watch('src/assets/js/**/*.js').on('all', gulp.series(javascript));
-  gulp.watch('src/assets/img/**/*').on('all', gulp.series(images));
-  gulp.watch('src/react/**/*.coffee').on('all', gulp.series(compileReact));
+  gulp.watch('src/pages/**/*.html').on('all', gulp.series(pages, reload));
+  gulp.watch('src/layouts/**/*.html').on('all', gulp.series(resetPages, pages, reload));
+  gulp.watch('src/assets/scss/**/*.scss').on('all', gulp.series(sass, reload));
+  gulp.watch('src/assets/js/**/*.js').on('all', gulp.series(javascript, reload));
+  gulp.watch('src/assets/img/**/*').on('all', gulp.series(images, reload));
+  gulp.watch('src/react/**/*.coffee').on('all', gulp.series(compileReact, reload));
   gulp.watch('src/server/**/*.coffee').on('all', gulp.series(compileServer, server));
 }
