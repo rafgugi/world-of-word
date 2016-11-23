@@ -1,5 +1,8 @@
 React = require 'react'
 dom = React.createElement
+Grid = require './Grid'
+TextInput = require './TextInput'
+ChatWindow = require './ChatWindow'
 
 GameComponent = React.createClass
   displayName: 'GameComponent'
@@ -14,19 +17,11 @@ GameComponent = React.createClass
   render: ->
     dom 'div', className: 'row',
       dom 'div', className: 'large-8 medium-8 columns',
-        dom 'div', className: 'words container float-center',
-          for i in [1..20]
-            dom 'div', key: i, className: 'words row',
-              for j in [1..20]
-                dom 'div', key: j, className: 'words cell',
-                  dom 'span', {}, 'A'
+        dom Grid, ordo: 20, letter: 'Z'
       dom 'div', className: 'large-4 medium-4 columns',
-        dom 'textarea', rows: 10
+        dom ChatWindow, row: 10
       dom 'div', className: 'large-12 columns',
         dom 'br'
-        dom 'div', className: 'input-group',
-          dom 'input', type: 'text', className: 'input-group-field'
-          dom 'div', className: 'input-group-button',
-            dom 'button', className: 'button', 'Send'
+        dom TextInput
 
 module.exports = GameComponent
