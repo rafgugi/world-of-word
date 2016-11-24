@@ -162,5 +162,5 @@ function watch() {
   gulp.watch('src/assets/js/**/*.js').on('all', gulp.series(javascript, reload));
   gulp.watch('src/assets/img/**/*').on('all', gulp.series(images, reload));
   gulp.watch('src/react/**/*.coffee').on('all', gulp.series(compileReact, reload));
-  gulp.watch('src/server/**/*.coffee').on('all', gulp.series(compileServer, server));
+  gulp.watch('src/server/**/*.coffee').on('all', gulp.series(compileServer, server, reload));
 }
