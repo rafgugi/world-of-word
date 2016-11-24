@@ -1,10 +1,10 @@
 _ = require 'lodash'
 dictionary = require './dictionary'
 
+# grid container, manipulate grid
 class Board
   constructor: (@_ordo = 15, @_gridLoop = 64, @_wordLoop = 4) ->
     @_availableWords = []
-    @_currentWords = []
     @_category = null
     @_grid = null
     @_ready = false
@@ -16,9 +16,9 @@ class Board
 
   getCategory: -> @_category
 
-  getAvailableWords: -> @_availableWords
+  getGrid: -> @_grid.getGrid()
 
-  getGrid: -> @_grid
+  getWords: -> @_grid._currentWords
 
   isReady: -> @_ready
 
@@ -34,7 +34,7 @@ class Board
       currentWords = []
       grid = new Grid(@_ordo)
 
-      shuffledWords = _.shuffle @getAvailableWords()
+      shuffledWords = _.shuffle @_availableWords
       currentScore = 0
       for word in shuffledWords
         rp = score: -1 # random position
@@ -59,8 +59,8 @@ class Board
 # grid is a square matrix contains letter
 class Grid
   constructor: (@_ordo = 15, @_emptyChar = ' ') ->
-    @_grid = []
-    @_currentWords = []
+    @_currentWords = null
+    @_grid = null
     @emptyGrid()
 
   getOrdo: -> @_ordo
@@ -75,6 +75,8 @@ class Grid
 
   # fill the grid with predefined empty char
   emptyGrid: ->
+    @_currentWords = {}
+    @_grid = []
     for i in [0..@_ordo]
       row = []
       for j in [0..@_ordo]
@@ -106,6 +108,7 @@ class Grid
     score
 
   fit: (col, row, vertical, word) ->
+    @_currentWords[word] = {col, row, vertical, word}
     for letter in word
       @cell(col, row, letter)
       if vertical then col++

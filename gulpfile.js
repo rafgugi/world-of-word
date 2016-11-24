@@ -28,7 +28,7 @@ const UNCSS_OPTIONS = ref.UNCSS_OPTIONS;
 const PATHS = ref.PATHS;
 
 // intialize game server
-var game = gls.new(PATHS.dist.server + '/game.js')
+var game = gls.new(PATHS.dist.server)
 
 function loadConfig() {
   let ymlFile = fs.readFileSync('config.yml', 'utf8');
