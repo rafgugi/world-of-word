@@ -21,7 +21,7 @@ class Game
       sock.emit 'timer', @currTimer
 
     # when client answer something
-    sock.on 'send', (message) =>
+    sock.on 'chat', (message) =>
       @io.emit 'chat', id: sock.id, chat: message
       word = @guess message
       if word

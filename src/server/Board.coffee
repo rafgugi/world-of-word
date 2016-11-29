@@ -1,6 +1,8 @@
 _ = require 'lodash'
 dictionary = require './dictionary'
 
+_randomLetter = 'ABCDEFGHIJKLMNOPQRSTUVWXYZABCDEFGHIKLMNOPRSTUWY'
+
 # grid container, manipulate grid
 class Board
   constructor: (@_ordo = 15, @_gridLoop = 64, @_wordLoop = 4) ->
@@ -89,7 +91,8 @@ class Grid
     for i in [0..@_ordo]
       for j in [0..@_ordo]
         if @cell(i, j) is @_emptyChar
-          @cell(i, j, 'X')
+          randomLetter = _.sample _randomLetter
+          @cell(i, j, randomLetter)
     true
 
   checkFitScore: (col, row, vertical, word) ->
