@@ -5,8 +5,7 @@ Grid = React.createClass
   displayName: 'Grid'
 
   getDefaultProps: -> 
-    ordo: 20
-    letter: 'X'
+    board: []
 
   getInitialState: -> {}
 
@@ -14,10 +13,10 @@ Grid = React.createClass
 
   render: ->
     dom 'div', className: 'words container float-center',
-      for i in [1..@props.ordo]
+      for row, i in @props.board
         dom 'div', key: i, className: 'words row',
-          for j in [1..@props.ordo]
+          for cell, j in row
             dom 'div', key: j, className: 'words cell',
-              dom 'span', {}, @props.letter
+              dom 'span', {}, cell
 
 module.exports = Grid

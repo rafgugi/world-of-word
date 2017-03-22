@@ -4,16 +4,21 @@ dom = React.createElement
 TextInput = React.createClass
   displayName: 'TextInput'
 
-  getDefaultProps: -> {}
+  getDefaultProps: ->
+    another: 'test'
+    onSubmit: -> {}
 
-  getInitialState: -> {}
-
-  componentDidMount: -> {}
+  handleSubmit: ->
+    @props.onSubmit @refs.input.value
+    @refs.input.value = ''
 
   render: ->
     dom 'div', className: 'input-group',
-      dom 'input', type: 'text', className: 'input-group-field'
+      dom 'input',
+        type: 'text'
+        className: 'input-group-field'
+        ref: 'input'
       dom 'div', className: 'input-group-button',
-        dom 'button', className: 'button', 'Send'
+        dom 'button', className: 'button', onClick: @handleSubmit, 'Send'
 
 module.exports = TextInput

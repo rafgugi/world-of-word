@@ -5,14 +5,19 @@ ChatWindow = React.createClass
   displayName: 'ChatWindow'
 
   getDefaultProps: ->
-    row: 10
+    chats: []
 
   getInitialState: -> {}
 
   componentDidMount: -> {}
 
   render: ->
-    dom 'div', className: 'large-4 medium-4 columns',
-      dom 'textarea', rows: @props.row
+    dom 'ul', {},
+      for chat, i in @props.chats
+        dom 'li', key: i,
+          if chat.user?
+            chat.user.name + ": " + chat.chat
+          else
+            dom 'span', className: '', chat.chat
 
 module.exports = ChatWindow

@@ -8,11 +8,17 @@ class Game
     @currTimer = 0
     @answered = []
     @io.on 'connection', @client
+    @clients = {}
     setInterval @_gameTimer, 1000
 
   # keep an eye to each client
   client: (sock) =>
     console.log "a user ##{sock.id} is connected on #{@currTimer}"
+    @clients[sock.id] = name: '', score: 0
+
+    sock.on 'name', (name) =>
+      @clients[sock.id].name = name
+      @io.emit 'clients', @clients
 
     # special for new client joined
     if @board.isReady()
@@ -27,8 +33,13 @@ class Game
       if word
         word.winner = sock.id
         @answered.push word
-        @io.emit 'chat', chat: "#{sock.id} berhasil menjawab dengan benar."
+        @clients[sock.id].score += message.length
+        @io.emit 'chat', chat: "#{@clients[sock.id].name} berhasil menjawab dengan benar."
+        @io.emit 'clients', @clients
         @io.emit 'answered', @answered
+
+    sock.on 'disconnect', =>
+      delete @clients[sock.id]
 
   # client guess the word. return the word object if word is
   # in the answer list and hasnt been answered yet
